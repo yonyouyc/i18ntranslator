@@ -1,0 +1,5 @@
+/node_modules/
+.idea/
+dest/
+package-lock.json
+*.lock
