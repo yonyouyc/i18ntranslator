@@ -1,0 +1,11 @@
+{
+  "name": "i18ntranslator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/yonyouyc/i18ntranslator.git",
+  "author": "windknow <songhlc@yonyou.com>",
+  "license": "MIT",
+  "dependencies": {
+    "line-reader": "^0.4.0"
+  }
+}
