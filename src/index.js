@@ -32,9 +32,10 @@ function readFileContent (path, parentPath) {
               }
               //中文字符的长度经编码之后大于4
               str_cut = str_cut.concat(a);
-            } else {
+            }
+            if (escape(a).length <= 4 || i === (str_len - 1)) {
               if (str_cut) {
-                generateDictionary(str_cut.toString(), '')
+                generateDictionary(str_cut.toString(), '')  //将中文字符作为myDictionary对象的键名，并初始化值为''
               }
               str_cut = null
             }
