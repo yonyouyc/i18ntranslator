@@ -4,6 +4,7 @@ var path = require('path')
 var destDictionary = require('./util/dictionary').destDictionary
 var lineReader = require('line-reader')
 var getChinese = require('./util/dictionary').getChinese
+var XLSX = require('xlsx')
 // 读取所有code目录下的文件
 var path = require('path')
 // 当前目录下js和html文件的总数
@@ -20,6 +21,76 @@ var otherFileSize = 0
 var getOtherFileSize = 0
 // 存储所给目录下的所有文件夹
 var directoryArr = []
+
+// 创建构造函数
+function workBook() {
+  this.SheetNames = [];
+  this.Sheets = {};
+}
+
+// 将json数据转换成xlsx能识别的数组格式
+function jsonToArray(jsonData) {
+  var arr = [];
+  var titleArr = ['key', 'value'];
+  arr.push(titleArr);
+  for (var key in jsonData) {
+    var coArr = [];
+    coArr.push(key);
+    coArr.push(jsonData[key]);
+    arr.push(coArr);
+  }
+  return arr;
+}
+
+// 将数组转化为xlsx能识别的形式
+function arrayToXlsx(data) {
+  var ws = {};
+  var range = { s: { c: 10000000, r: 10000000 }, e: { c: 0, r: 0 } };
+  for (var R = 0; R != data.length; ++R) {
+    for (var C = 0; C != data[R].length; ++C) {
+      if (range.s.r > R) range.s.r = R;
+      if (range.s.c > C) range.s.c = C;
+      if (range.e.r < R) range.e.r = R;
+      if (range.e.c < C) range.e.c = C;
+      var cell = { v: data[R][C] };
+      if (cell.v == null) continue;
+      var cell_ref = XLSX.utils.encode_cell({ c: C, r: R });
+
+      if (typeof cell.v === 'number') cell.t = 'n';
+      else if (typeof cell.v === 'boolean') cell.t = 'b';
+      else if (cell.v instanceof Date) {
+        cell.t = 'n'; cell.z = XLSX.SSF._table[14];
+        cell.v = datenum(cell.v);
+      }
+      else cell.t = 's';
+
+      ws[cell_ref] = cell;
+    }
+  }
+  if (range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+  return ws;
+}
+
+// 写入txt文件
+function writeTxt(path, data) {
+  fs.writeFile(path, JSON.stringify(data), function (err) {
+    if (err) {
+      throw err;
+    }
+    console.log('The txt file has been saved!');
+  });
+}
+
+// 写xlsx文件
+function writeXlsx(data, path) {
+  var wb = new workBook();
+  var jsonArr = jsonToArray(data);
+  var ws = arrayToXlsx(jsonArr);
+  wb.SheetNames.push('chinese');
+  wb.Sheets['chinese'] = ws;
+  XLSX.writeFile(wb, path);
+  console.log('The xlsx file has been saved!');
+}
 
 // 逐行读取文件内容，同时忽略注释
 function readLine(file, callback) {
@@ -189,14 +260,10 @@ function readFileContent(path) {
                   var directory = directoryArr.shift()
                   if (directory) {
                     console.log('directory:' + directory)
-                    rdFileContent(directory)
+                    readFileContent(directory)
                   } else {
-                    fs.writeFile('../dest/final.txt', JSON.stringify(destDictionary), function (err) {
-                      if (err) {
-                        throw err;
-                      }
-                      console.log('The file has been saved!');
-                    });
+                    writeTxt('../dest/final.txt', JSON.stringify(destDictionary));
+                    writeXlsx(destDictionary, '../dest/chinese.xlsx');
                   }
                 }
               })
@@ -209,14 +276,10 @@ function readFileContent(path) {
                   otherFileSize = 0
                   var directory = directoryArr.shift()
                   if (directory) {
-                    rdFileContent(directory)
+                    readFileContent(directory)
                   } else {
-                    fs.writeFile('../dest/final.txt', JSON.stringify(destDictionary), function (err) {
-                      if (err) {
-                        throw err;
-                      }
-                      console.log('The file has been saved!');
-                    });
+                    writeTxt('../dest/final.txt', JSON.stringify(destDictionary));
+                    writeXlsx(destDictionary, '../dest/chinese.xlsx');
                   }
                 }
 
@@ -235,7 +298,7 @@ function readFileContent(path) {
                 directorySize = 0
                 var directory = directoryArr.shift()
                 if (directory) {
-                  rdFileContent(directory)
+                  readFileContent(directory)
                 }
               }
             }
