@@ -92,6 +92,36 @@ function writeXlsx(data, path) {
   console.log('The xlsx file has been saved!');
 }
 
+// 处理一行注释
+function oneLine(line, start, end) {
+  // 获取注释前面的内容
+  var startStr = line.substring(0, start)
+  // 获取注释后面的内容
+  var endStr = line.substring(end)
+  if (startStr) {
+    getChinese(startStr)
+  }
+  if (endStr) {
+    getChinese(endStr)
+  }
+}
+
+// 处理多行注释开始情况
+function mulLineStart(line, start) {
+  var startStr = line.substring(0, start)
+  if (startStr) {
+    getChinese(startStr)
+  }
+}
+
+// 处理多行注释结束情况
+function mulLineEnd(line, end) {
+  var endStr = line.substring(end)
+  if (endStr) {
+    getChinese(endStr)
+  }
+}
+
 // 逐行读取文件内容，同时忽略注释
 function readLine(file, callback) {
   // 这里读取当前文件全部内容，用来判断该文件的内容是否为空，如果为空的话lineReader.eachLine不会执行
@@ -108,40 +138,39 @@ function readLine(file, callback) {
         case 'code':
           var startIndex = line.indexOf('<!--')
           var endIndex = line.indexOf('-->')
+          var _startIndex = line.indexOf('/*')
+          var _endIndex = line.indexOf('*/')
           // html注释在同一行的情况
           if (startIndex > -1 && endIndex > -1) {
             // 改变status的值为code
             status = 'code'
-            // 获取注释前面的内容
-            var startStr = line.substring(0, startIndex)
-            // 获取注释后面的内容
-            var endStr = line.substring(endIndex)
-            if (startStr) {
-              getChinese(startStr)
-            }
-            if (endStr) {
-              getChinese(endStr)
-            }
+            oneLine(line, startIndex, endIndex)
+          } else if (_startIndex > -1 && _endIndex > -1) {
+            // 改变status的值为code
+            status = 'code'
+            oneLine(line, _startIndex, _endIndex)
           } else if (startIndex > -1 && endIndex < 0) { //多行注释的情况
             // 改变status的状态为commentStart，表示是多行注释，直到-->出现
             status = 'commentStart'
-            var startStr = line.substring(0, startIndex)
-            if (startStr) {
-              getChinese(startStr)
-            }
-          } else if (startIndex < 0) {
+            mulLineStart(line, startIndex)
+          } else if (_startIndex > -1 && _endIndex < 0) {
+            // 改变status的状态为commentStart，表示是多行注释，直到-->出现
+            status = 'commentStart'
+            mulLineStart(line, _startIndex)
+          } else if (startIndex < 0 && _startIndex < 0) {
             status = 'code'
             getChinese(line)
           }
           break
         case 'commentStart':
           var endIndex = line.indexOf('-->')
+          var _endIndex = line.indexOf('*/')
           // 多行注释结束，改变status=code，否则的话就status继续为commentStart
           if (endIndex > -1) {
-            var endStr = line.substring(endIndex)
-            if (endStr) {
-              getChinese(endStr)
-            }
+            mulLineEnd(line, endIndex)
+            status = 'code'
+          } else if (_endIndex > -1) {
+            mulLineEnd(line, _endIndex)
             status = 'code'
           } else {
             status = 'commentStart'
