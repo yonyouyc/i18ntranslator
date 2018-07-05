@@ -1,7 +1,6 @@
 var fs = require('fs')
 var readFileContent = require('./util/file').readFileContent
 var writeXlsx = require('./util/xlsx').writeXlsx
-var readXlsx = require('./util/xlsx').readXlsx
 // 写入txt文件
 function writeTxt(path, data) {
   fs.writeFile(path, JSON.stringify(data), function (err) {
