@@ -2,11 +2,12 @@ let dictionnary = {
   '中文': 'chinese'
 }
 var myDictionary = {}
-function generateDictionary(key, value) {
+function generateDictionary(fileKeys, key, value) {
   myDictionary[key] = value
+  fileKeys.push(key)
 }
 
-function getChinese(line) {
+function getChinese(fileKeys, line) {
   var str_cut = null
   var str_len = line.length
   for (var i = 0; i < str_len; i++) {
@@ -20,7 +21,7 @@ function getChinese(line) {
     }
     if (escape(a).length <= 4 || i === (str_len - 1)) {
       if (str_cut) {
-        generateDictionary(str_cut.toString(), '')  //将中文字符作为myDictionary对象的键名，并初始化值为''
+        generateDictionary(fileKeys, str_cut.toString(), '')  //将中文字符作为myDictionary对象的键名，并初始化值为''
       }
       str_cut = null
     }

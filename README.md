@@ -1,3 +1,16 @@
+# how to use
+抽取词条
+```
+cd src
+node index.js
+```
+替换词条生成英文版代码
+```
+cd src
+node translate.js
+
+```
+
 # i18ntranslator
 用于统一抽取中文内容并动态替换
 >已完成的功能

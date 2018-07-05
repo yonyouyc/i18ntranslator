@@ -25,32 +25,32 @@ function write () {
 
 }
 // 处理一行注释
-function oneLine(line, start, end) {
+function oneLine(fileKeys,line, start, end) {
   // 获取注释前面的内容
   var startStr = line.substring(0, start)
   // 获取注释后面的内容
   var endStr = line.substring(end)
   if (startStr) {
-    getChinese(startStr)
+    getChinese(fileKeys,startStr)
   }
   if (endStr) {
-    getChinese(endStr)
+    getChinese(fileKeys,endStr)
   }
 }
 
 // 处理多行注释开始情况
-function mulLineStart(line, start) {
+function mulLineStart(fileKeys,line, start) {
   var startStr = line.substring(0, start)
   if (startStr) {
-    getChinese(startStr)
+    getChinese(fileKeys,startStr)
   }
 }
 
 // 处理多行注释结束情况
-function mulLineEnd(line, end) {
+function mulLineEnd(fileKeys,line, end) {
   var endStr = line.substring(end)
   if (endStr) {
-    getChinese(endStr)
+    getChinese(fileKeys,endStr)
   }
 }
 function readLine (file, callback) {
@@ -60,6 +60,7 @@ function readLine (file, callback) {
     callback('no data')
     return
   }
+  var fileKeys = []
   // 找出html文件夹的注释
   if (file.indexOf('.html') > 0) {
     var status = 'code'
@@ -74,22 +75,22 @@ function readLine (file, callback) {
           if (startIndex > -1 && endIndex > -1) {
             // 改变status的值为code
             status = 'code'
-            oneLine(line, startIndex, endIndex)
+            oneLine(fileKeys,line, startIndex, endIndex)
           } else if (_startIndex > -1 && _endIndex > -1) {
             // 改变status的值为code
             status = 'code'
-            oneLine(line, _startIndex, _endIndex)
+            oneLine(fileKeys,line, _startIndex, _endIndex)
           } else if (startIndex > -1 && endIndex < 0) { //多行注释的情况
             // 改变status的状态为commentStart，表示是多行注释，直到-->出现
             status = 'commentStart'
-            mulLineStart(line, startIndex)
+            mulLineStart(fileKeys,line, startIndex)
           } else if (_startIndex > -1 && _endIndex < 0) {
             // 改变status的状态为commentStart，表示是多行注释，直到-->出现
             status = 'commentStart'
-            mulLineStart(line, _startIndex)
+            mulLineStart(fileKeys,line, _startIndex)
           } else if (startIndex < 0 && _startIndex < 0) {
             status = 'code'
-            getChinese(line)
+            getChinese(fileKeys,line)
           }
           break
         case 'commentStart':
@@ -97,10 +98,10 @@ function readLine (file, callback) {
           var _endIndex = line.indexOf('*/')
           // 多行注释结束，改变status=code，否则的话就status继续为commentStart
           if (endIndex > -1) {
-            mulLineEnd(line, endIndex)
+            mulLineEnd(fileKeys,line, endIndex)
             status = 'code'
           } else if (_endIndex > -1) {
-            mulLineEnd(line, _endIndex)
+            mulLineEnd(fileKeys,line, _endIndex)
             status = 'code'
           } else {
             status = 'commentStart'
@@ -111,7 +112,7 @@ function readLine (file, callback) {
           break
       }
       if (last) {
-        callback(file, str)
+        callback(file, str, fileKeys)
       }
     })
   }
@@ -130,26 +131,26 @@ function readLine (file, callback) {
             status = 'code'
             var startStr = line.substring(0, singleStartIndex)
             if (startStr) {
-              getChinese(startStr)
+              getChinese(fileKeys,startStr)
             }
           } else if (mulStartIndex > -1 && mulEndIndex > -1) {// 用/* */单行注释的情况
             status = 'code'
             var startStr = line.substring(0, mulStartIndex)
             var endStr = line.substring(mulEndIndex)
             if (startStr) {
-              getChinese(startStr)
+              getChinese(fileKeys,startStr)
             }
             if (endStr) {
-              getChinese(endStr)
+              getChinese(fileKeys,endStr)
             }
           } else if (mulStartIndex > -1 && mulEndIndex < 0) {// 用/* */多行注释的情况
             status = 'startComment' // 多行注释开始
             var startStr = line.substring(0, mulStartIndex)
             if (startStr) {
-              getChinese(startStr)
+              getChinese(fileKeys,startStr)
             }
           } else {
-            getChinese(line)
+            getChinese(fileKeys,line)
           }
           break
         case 'startComment':
@@ -159,7 +160,7 @@ function readLine (file, callback) {
             status = 'code'
             var endStr = line.substring(mulEndIndex)
             if (endStr) {
-              getChinese(endStr)
+              getChinese(fileKeys,endStr)
             }
           } else {
             status = 'startComment'
@@ -169,7 +170,7 @@ function readLine (file, callback) {
           status = 'code'
       }
       if (last) {
-        callback(file, str)
+        callback(file, str, fileKeys)
       }
     })
   }
@@ -180,9 +181,9 @@ function fullPath(dir, files) {
     return path.join(dir, f)
   })
 }
-var singleFileCallback = function (path, str) {console.log(path)}
+var singleFileCallback = function (path, str) {}
 var endCallBack = function () {}
-// 工具的入口函数，
+// 工具的入口函数，路径、结束之后的callback函数、单个文件输出完的callback函数
 function readFileContent(path, endCB, fileCB) {
   if (fileCB) {
     singleFileCallback = fileCB
@@ -213,9 +214,9 @@ function readFileContent(path, endCB, fileCB) {
         fs.stat(f, function (err, stats) {
           if (stats.isFile()) {
             if (f.indexOf('.js') > -1 || f.indexOf('.html') > -1) {
-              readLine(f, function (path, fileData) {
+              readLine(f, function (path, fileData, filekeys) {
                 finishedSize++
-                singleFileCallback(path, fileData)
+                singleFileCallback(path, fileData, filekeys)
                 // 判断当前目录下的js和html文件是否已经遍历完了，遍历完的话就遍历下一个子目录
                 if (filesize == finishedSize) {
                   filesize = 0
