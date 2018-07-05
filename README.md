@@ -1,13 +1,32 @@
+# yci18ntranslator
+[![npm version](https://img.shields.io/npm/v/i18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
+[![license](https://img.shields.io/npm/l/i18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
+[![Build Status](https://api.travis-ci.org/yonyouyc/i18ntranslator.png?branch=master)](https://api.travis-ci.org/yonyouyc/i18ntranslator.png?branch=master)
+
+
 # how to use
+安装依赖
+```
+yarn add yci18ntranslator
+
+```
 抽取词条
 ```
-cd src
-node index.js
+// 获取引用
+var i18ntranslator = require('yci18ntranslator')
+// 入口函数，'./code 表示你要进行抽取的目录'
+// './dest/chinese-test.xlsx' 表示要把抽取后的词条excel文件输出到什么位置
+i18ntranslator.readFileContent('./code', function (destDictionary) {
+  i18ntranslator.writeXlsx(destDictionary, './dest/chinese-test.xlsx');
+})
+// 可参考test/index.js
+
 ```
 替换词条生成英文版代码
 ```
-cd src
-node translate.js
+// 可参考src/translate.js
+
+```
 
 ```
 
