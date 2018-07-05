@@ -1,6 +1,6 @@
 # yci18ntranslator
-[![npm version](https://img.shields.io/npm/v/i18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
-[![license](https://img.shields.io/npm/l/i18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
+[![npm version](https://img.shields.io/npm/v/yci18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
+[![license](https://img.shields.io/npm/l/yci18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
 [![Build Status](https://api.travis-ci.org/yonyouyc/i18ntranslator.png?branch=master)](https://api.travis-ci.org/yonyouyc/i18ntranslator.png?branch=master)
 
 
