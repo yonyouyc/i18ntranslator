@@ -3,6 +3,10 @@
 [![license](https://img.shields.io/npm/l/yci18ntranslator.svg)](https://www.npmjs.com/package/yci18ntranslator)
 [![Build Status](https://api.travis-ci.org/yonyouyc/i18ntranslator.png?branch=master)](https://api.travis-ci.org/yonyouyc/i18ntranslator.png?branch=master)
 
+# 版本更新说明
+- 2018-07-20 更新setting配置，支持设置抽取和替换指定的扩展名，
+    支持忽略部分不需要抽取和替换的目录
+- 仍存在的bug 目录下不允许存在空目录，所有目录下必须有文件
 
 # how to use
 安装依赖
