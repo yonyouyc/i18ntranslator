@@ -2,6 +2,7 @@ var fs = require('fs')
 var lineReader = require('line-reader')
 var getChinese = require('./dictionary').getChinese
 var destDictionary = require('./dictionary').destDictionary
+var setting = require('./setting')
 // 读取所有code目录下的文件
 var path = require('path')
 // 当前目录下js和html文件的总数
@@ -53,16 +54,41 @@ function mulLineEnd(fileKeys,line, end) {
     getChinese(fileKeys,endStr)
   }
 }
+// 用来判断是否当前目录要被忽略掉
+function isDirectoryIgnore (directory) {
+// 如果目录在需要忽略的目录中，则不继续翻译此目录下的内容
+  var ignoreDirectory = setting.getIgnoreDirectory()
+  var flag = false
+  for (var i = 0; i < ignoreDirectory.length; i++) {
+    if (directory.indexOf(ignoreDirectory[i]) > -1) {
+      flag =  true
+      break
+    }
+  }
+  return flag
+}
+function readFileStr (file, callback) {
+  // 这里读取当前文件全部内容，用来判断该文件的内容是否为空，如果为空的话lineReader.eachLine不会执行
+  var str = fs.readFileSync(file).toString()
+  if (!str) {
+    callback(file + 'no data')
+    return
+  } else {
+    callback(file, str)
+  }
+}
 function readLine (file, callback) {
   // 这里读取当前文件全部内容，用来判断该文件的内容是否为空，如果为空的话lineReader.eachLine不会执行
   var str = fs.readFileSync(file).toString()
   if (!str) {
-    callback('no data')
+    callback(file + 'no data')
     return
   }
   var fileKeys = []
+  // 判断是否是在当前选取的模板文件范围内
+  var templateList = setting.extensionTemplateName
   // 找出html文件夹的注释
-  if (file.indexOf('.html') > 0) {
+  if (isFileExtensionInList(file, templateList)) {
     var status = 'code'
     lineReader.eachLine(file, function (line, last) {
       switch (status) {
@@ -116,8 +142,9 @@ function readLine (file, callback) {
       }
     })
   }
+  var extensionFileList = setting.extensionName
   // 找出js文件的注释
-  if (file.indexOf('.js') > 0) {
+  if (isFileExtensionInList(file, extensionFileList)) {
     var status = 'code'
     lineReader.eachLine(file, function (line, last) {
       switch (status) {
@@ -184,6 +211,20 @@ function fullPath(dir, files) {
 var singleFileCallback = function (path, str) {}
 var endCallBack = function () {}
 // 工具的入口函数，路径、结束之后的callback函数、单个文件输出完的callback函数
+var fileextensions = setting.extensionTemplateName.concat(setting.extensionName)
+function isFileExtensionInList (filepath, list) {
+  var flag = false
+  if (!list.length) {
+    return false
+  }
+  for (var i = 0; i < list.length; i++) {
+    if (filepath.indexOf(list[i]) > -1) {
+      flag = true
+      break
+    }
+  }
+  return flag
+}
 function readFileContent(path, endCB, fileCB) {
   if (fileCB) {
     singleFileCallback = fileCB
@@ -200,20 +241,22 @@ function readFileContent(path, endCB, fileCB) {
       for (var i = 0; i < files.length; i++) {
         var stats = fs.statSync(files[i])
         if (stats.isFile()) {
-          if (files[i].indexOf('.js') > -1 || files[i].indexOf('.html') > -1) {
+          if (isFileExtensionInList(files[i], fileextensions)) {
             filesize++
           } else {
             otherFileSize++
           }
         }
         if (stats.isDirectory()) {
-          directorySize++
+          if (!isDirectoryIgnore(files[i])) {
+            directorySize++
+          }
         }
       }
       files.forEach(function (f) {
         fs.stat(f, function (err, stats) {
           if (stats.isFile()) {
-            if (f.indexOf('.js') > -1 || f.indexOf('.html') > -1) {
+            if (isFileExtensionInList(f, fileextensions)) {
               readLine(f, function (path, fileData, filekeys) {
                 finishedSize++
                 singleFileCallback(path, fileData, filekeys)
@@ -227,7 +270,9 @@ function readFileContent(path, endCB, fileCB) {
                   getDirectorySize = 0
                   var directory = directoryArr.shift()
                   if (directory) {
-                    readFileContent(directory)
+                    if (!isDirectoryIgnore(directory)) {
+                      readFileContent(directory)
+                    }
                   } else {
                     // writeTxt('../dest/final.txt', JSON.stringify(destDictionary));
                     endCallBack(destDictionary)
@@ -235,6 +280,9 @@ function readFileContent(path, endCB, fileCB) {
                 }
               })
             } else {
+              readFileStr(f, function (path, fileData) {
+                singleFileCallback(path, fileData, 'otherfile')
+              })
               // 这里处理当前目录下即没有html、js文件也没有文件夹的情况
               if (filesize == 0 && directorySize == 0) {
                 getOtherFileSize++
@@ -243,7 +291,9 @@ function readFileContent(path, endCB, fileCB) {
                   otherFileSize = 0
                   var directory = directoryArr.shift()
                   if (directory) {
-                    readFileContent(directory)
+                    if (!isDirectoryIgnore(directory)) {
+                      readFileContent(directory)
+                    }
                   } else {
                     // writeTxt('../dest/final.txt', JSON.stringify(destDictionary));
                     endCallBack(destDictionary)
@@ -254,18 +304,22 @@ function readFileContent(path, endCB, fileCB) {
             }
           }
           if (stats.isDirectory()) {
-            directoryArr.push(f)
-            // 这里处理当前目录下没有js和html文件的情况
-            if (filesize == 0) {
-              getDirectorySize++
-              if (getDirectorySize == directorySize) {
-                getDirectorySize = 0
-                otherFileSize = 0
-                getOtherFileSize = 0
-                directorySize = 0
-                var directory = directoryArr.shift()
-                if (directory) {
-                  readFileContent(directory)
+            if (!isDirectoryIgnore(f)) {
+              directoryArr.push(f)
+              // 这里处理当前目录下没有js和html文件的情况
+              if (filesize == 0) {
+                getDirectorySize++
+                if (getDirectorySize == directorySize) {
+                  getDirectorySize = 0
+                  otherFileSize = 0
+                  getOtherFileSize = 0
+                  directorySize = 0
+                  var directory = directoryArr.shift()
+                  if (directory) {
+                    if (!isDirectoryIgnore(directory)) {
+                      readFileContent(directory)
+                    }
+                  }
                 }
               }
             }

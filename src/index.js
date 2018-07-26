@@ -10,11 +10,15 @@ function writeTxt(path, data) {
     console.log('The txt file has been saved!');
   });
 }
-
+var path = require('path')
+var absolutePath = path.resolve('./code/src')
+var exportPath = path.resolve('./dest')
+var setting = require('./util/setting')
+setting.setIgnoreDirectory(['my', 'test', 'vue', 'translated'])
 // 入口函数
-readFileContent('../code', function (destDictionary) {
-  console.log('wiret')
-  writeXlsx(destDictionary, '../dest/chinese.xlsx');
+readFileContent(absolutePath, function (destDictionary) {
+  console.log('write')
+  writeXlsx(destDictionary, exportPath + '/chinese.xlsx');
 })
 ///分为*.js 和 *.html
 

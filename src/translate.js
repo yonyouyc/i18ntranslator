@@ -1,25 +1,31 @@
 var readFileContent = require('./util/file').readFileContent
 var readXlsx = require('./util/xlsx').readXlsx
-var path = '../dest/translated.xlsx'
+var path =  require('path')
+var srcpath = path.resolve('./dest/translated.xlsx')
+var sourceDirectory = path.resolve('./code')
 var translate = {}
-var json = readXlsx(path)
+var json = readXlsx(srcpath)
 var fs = require('fs')
 json.forEach(function (item) {
   translate[item.key] = item.value
 })
-readFileContent('../code', function () {
+var setting = require('./util/setting')
+setting.setIgnoreDirectory(['vue'])
+readFileContent(sourceDirectory, function () {
   console.log('代码生成成功')
 }, function (path, str, fileKeys) {
-  var sortedKeys = fileKeys.sort(function (a, b) {
-    return a.toString().length < b.toString().length
-  })
-  sortedKeys.forEach(function (key) {
-    var translated = translate[key]
-    if (translated) {
-      str = str.replace(key, translated)
-    }
-  })
-  var writePath = path.replace('../code/', '../code-en/')
+  if (fileKeys !== 'otherfile') {
+    var sortedKeys = fileKeys.sort(function (a, b) {
+      return a.toString().length < b.toString().length
+    })
+    sortedKeys.forEach(function (key) {
+      var translated = translate[key]
+      if (translated) {
+        str = str.replace(key, translated)
+      }
+    })
+  }
+  var writePath = path.replace('/code/', '/code-en/')
   var writeDirectory = writePath.split('/')
   writeDirectory = writeDirectory.slice(0, writeDirectory.length-1)
   var writeDirectoryString = ''
