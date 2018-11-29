@@ -1,14 +1,13 @@
 {
   "name": "yci18ntranslator",
   "version": "1.1.0",
-  "main": "index.js",
+  "main": "dist/i18ntranslator.min.js",
   "repository": "https://github.com/yonyouyc/i18ntranslator.git",
   "author": "windknow <songhlc@yonyou.com>",
   "license": "MIT",
-  "main": "dist/i18ntranslator.min.js",
   "scripts": {
     "dev": "webpack --mode development",
-    "build": "webpack --mode production",
+    "build": "webpack --mode none",
     "test": "yarn testwrite && yarn testread",
     "testwrite": "node test/index.js",
     "testread": "node test/testdist.js"

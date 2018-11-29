@@ -1,0 +1,63 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8"/>
+</head>
+<body>
+<div>可打开浏览器控制台查看结果</div>
+<div id="result"></div>
+<script src="http://apps.bdimg.com/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="./md5.js"></script>
+<script src="./query.js"></script>
+<script type="text/javascript">
+var appid = '20181117000235723';//'2015063000000001';
+var key = '19ez5yr6vytZLhG676OR';
+var salt = (new Date).getTime();
+
+// 多个query可以用\n连接  如 query='apple\norange\nbanana\npear'
+var from = 'zh';
+var to = 'en';
+
+querys = querys.split('\n')
+debugger
+var newArray = ''
+if (querys.length > 80) {
+  var _length = Math.ceil(querys.length / 80)
+  var newArray = new Array(_length)
+  for (var i =0; i < _length; i++) {
+    newArray[i] = querys.slice(i * 80, i * 80 + 80).join('\n')
+  }
+} else {
+  newArray = [querys]
+}
+var resultArray = []
+newArray.forEach(function (query) {
+  var str1 = appid + query + salt +key;
+  var sign = MD5(str1);
+  $.ajax({
+    url: 'http://api.fanyi.baidu.com/api/trans/vip/translate',
+    type: 'get',
+    dataType: 'jsonp',
+    data: {
+      q: query,
+      appid: appid,
+      salt: salt,
+      from: from,
+      to: to,
+      sign: sign
+    },
+    success: function (data) {
+      var myarray = data.trans_result.map(function (item) {
+        return {
+          key: item.src,
+          value: item.dst
+        }
+      })
+      resultArray = resultArray.concat(myarray)
+      $('#result').html(JSON.stringify(resultArray))
+    }
+  });
+})
+
+
+</script>
+</body>
