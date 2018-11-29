@@ -20,14 +20,14 @@ var to = 'en';
 querys = querys.split('\n')
 debugger
 var newArray = ''
-if (querys.length > 80) {
-  var _length = Math.ceil(querys.length / 80)
+if (querys.length > 60) {
+  var _length = Math.ceil(querys.length / 60)
   var newArray = new Array(_length)
   for (var i =0; i < _length; i++) {
-    newArray[i] = querys.slice(i * 80, i * 80 + 80).join('\n')
+    newArray[i] = querys.slice(i * 60, i * 60 + 60).join('\n')
   }
 } else {
-  newArray = [querys]
+  newArray = [querys.join('\n')]
 }
 var resultArray = []
 newArray.forEach(function (query) {
