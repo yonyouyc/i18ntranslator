@@ -2,6 +2,7 @@ const path = require('path');
 module.exports = {
   entry: './src/app.js',
   mode: 'develop',
+  devtool: 'cheap-source-map',
   externals: {
     "xlsx": {
       commonjs: "xlsx",//如果我们的库运行在Node.js环境中，import _ from 'lodash'等价于const _ = require('lodash')

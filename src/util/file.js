@@ -327,6 +327,9 @@ function readFileContent(path, endCB, fileCB) {
         })
       })
     }
+    else {
+      console.log(path + '：此目录下没有任何文件，请确认')
+    }
   })
 }
 module.exports = {
